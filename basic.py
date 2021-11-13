@@ -38,13 +38,13 @@ class InvalidSyntaxError(Error):
     def __init__(self, pos_start, pos_end, details=''):
         super().__init__(pos_start, pos_end, 'Invalid Syntax', details)
 
-
 #######################################
 # POSITION
 #######################################
+# help to know where the error is
 
 class Position:
-    def __init__(self, idx, ln, col, fn, ftxt):
+    def __init__(self, idx, ln, col, fn, ftxt): #index, line number, column number, file name, file text
         self.idx = idx
         self.ln = ln
         self.col = col
@@ -77,7 +77,7 @@ TT_MUL = 'MUL'
 TT_DIV = 'DIV'
 TT_LPAREN = 'LPAREN'
 TT_RPAREN = 'RPAREN'
-TT_EOF = 'EOF'
+TT_EOF = 'EOF' #end of file
 
 
 class Token:
