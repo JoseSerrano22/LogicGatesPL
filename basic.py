@@ -9,7 +9,7 @@ from strings_with_arrows import *
 #######################################
 
 DIGITS = '0123456789'
-
+VARIABLES = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 #######################################
 # ERRORS
@@ -69,6 +69,7 @@ class Position:
 # TOKENS
 #######################################
 
+TT_VAR = 'VAR'
 TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
 TT_PLUS = 'PLUS'
@@ -77,6 +78,7 @@ TT_MUL = 'MUL'
 TT_DIV = 'DIV'
 TT_LPAREN = 'LPAREN'
 TT_RPAREN = 'RPAREN'
+TT_NOT = 'NOT'
 TT_EOF = 'EOF' #end of file
 
 
@@ -122,6 +124,9 @@ class Lexer:
                 self.advance()
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
+            elif self.current_char in VARIABLES:
+                tokens.append(self.make_var())
+                self.advance()
             elif self.current_char == '+':
                 tokens.append(Token(TT_PLUS, pos_start=self.pos))
                 self.advance()
@@ -139,6 +144,9 @@ class Lexer:
                 self.advance()
             elif self.current_char == ')':
                 tokens.append(Token(TT_RPAREN, pos_start=self.pos))
+                self.advance()
+            elif self.current_char == '!':
+                tokens.append(Token(TT_NOT, pos_start=self.pos))
                 self.advance()
             else:
                 pos_start = self.pos.copy()
@@ -168,6 +176,11 @@ class Lexer:
         else:
             return Token(TT_FLOAT, float(num_str), pos_start, self.pos)
 
+    def make_var(self):
+        var_str = self.current_char
+        pos_start = self.pos.copy()
+        return Token(TT_VAR, var_str, pos_start, self.pos)
+
 
 #######################################
 # NODES
@@ -180,6 +193,12 @@ class NumberNode:
     def __repr__(self):
         return f'{self.tok}'
 
+class VarNode:
+    def __init__(self,tok):
+        self.tok = tok
+
+    def __repr__(self):
+        return f'{self.tok}'
 
 class BinOpNode:
     def __init__(self, left_node, op_tok, right_node):
@@ -256,7 +275,7 @@ class Parser:
         res = ParseResult()
         tok = self.current_tok
 
-        if tok.type in (TT_PLUS, TT_MINUS):
+        if tok.type in (TT_PLUS, TT_MINUS, TT_NOT):
             res.register(self.advance())
             factor = res.register(self.factor())
             if res.error: return res
@@ -265,6 +284,10 @@ class Parser:
         elif tok.type in (TT_INT, TT_FLOAT):
             res.register(self.advance())
             return res.success(NumberNode(tok))
+
+        elif tok.type in (TT_VAR):
+            res.register(self.advance())
+            return res.success(VarNode(tok))
 
         elif tok.type == TT_LPAREN:
             res.register(self.advance())
