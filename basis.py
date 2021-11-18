@@ -8,8 +8,9 @@ from strings_with_arrows import *
 # CONSTANTS
 #######################################
 
-DIGITS = '0123456789'
+DIGITS = '01'
 VARIABLES = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
 
 #######################################
 # ERRORS
@@ -70,17 +71,14 @@ class Position:
 #######################################
 
 TT_VAR = 'VAR'
-TT_INT = 'INT'
-TT_FLOAT = 'FLOAT'
-TT_PLUS = 'PLUS'
-TT_MINUS = 'MINUS'
-TT_MUL = 'MUL'
-TT_DIV = 'DIV'
+TT_PLUS = 'OR'
+TT_MUL = 'AND'
+TT_FALSE = 'FALSE:0'
+TT_TRUE = 'TRUE'
 TT_LPAREN = 'LPAREN'
 TT_RPAREN = 'RPAREN'
 TT_NOT = 'NOT'
 TT_EOF = 'EOF' #end of file
-
 
 class Token:
     def __init__(self, type_, value=None, pos_start=None, pos_end=None):
@@ -98,7 +96,6 @@ class Token:
     def __repr__(self):
         if self.value: return f'{self.type}:{self.value}'
         return f'{self.type}'
-
 
 #######################################
 # LEXER
@@ -119,25 +116,20 @@ class Lexer:
     def make_tokens(self):
         tokens = []
 
-        while self.current_char != None:
+        while self.current_char is not None:
             if self.current_char in ' \t':
                 self.advance()
             elif self.current_char in DIGITS:
-                tokens.append(self.make_number())
+                tokens.append(self.make_TruthAndFalseNum())
+                self.advance()
             elif self.current_char in VARIABLES:
                 tokens.append(self.make_var())
                 self.advance()
             elif self.current_char == '+':
                 tokens.append(Token(TT_PLUS, pos_start=self.pos))
                 self.advance()
-            elif self.current_char == '-':
-                tokens.append(Token(TT_MINUS, pos_start=self.pos))
-                self.advance()
             elif self.current_char == '*':
                 tokens.append(Token(TT_MUL, pos_start=self.pos))
-                self.advance()
-            elif self.current_char == '/':
-                tokens.append(Token(TT_DIV, pos_start=self.pos))
                 self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(TT_LPAREN, pos_start=self.pos))
@@ -157,36 +149,38 @@ class Lexer:
         tokens.append(Token(TT_EOF, pos_start=self.pos))
         return tokens, None
 
-    def make_number(self):
-        num_str = ''
-        dot_count = 0
+    def make_TruthAndFalseNum(self):
+        num_str = self.current_char
         pos_start = self.pos.copy()
-
-        while self.current_char != None and self.current_char in DIGITS + '.':
-            if self.current_char == '.':
-                if dot_count == 1: break
-                dot_count += 1
-                num_str += '.'
-            else:
-                num_str += self.current_char
-            self.advance()
-
-        if dot_count == 0:
-            return Token(TT_INT, int(num_str), pos_start, self.pos)
+        if num_str == '0':
+            return Token(TT_FALSE, int(num_str), pos_start, self.pos)
         else:
-            return Token(TT_FLOAT, float(num_str), pos_start, self.pos)
+            return Token(TT_TRUE, int(num_str), pos_start, self.pos)
+
+    # def make_var2(self):
+    #     var_str = ''
+    #     pos_start = self.pos.copy()
+    #     while self.current_char != None and self.current_char in VARIABLES:
+    #         var_str += self.current_char
+    #         self.advance()
+    #
+    #         if 'and' == var_str:
+    #             return Token(TT_MUL, pos_start, self.pos)
+    #         elif 'or' == var_str:
+    #             return Token(TT_PLUS, pos_start, self.pos)
+    #
+    #     return Token(TT_VAR, var_str, pos_start, self.pos)
 
     def make_var(self):
         var_str = self.current_char
         pos_start = self.pos.copy()
         return Token(TT_VAR, var_str, pos_start, self.pos)
 
-
 #######################################
 # NODES
 #######################################
 
-class NumberNode:
+class BoolNode:
     def __init__(self, tok):
         self.tok = tok
 
@@ -218,7 +212,6 @@ class UnaryOpNode:
     def __repr__(self):
         return f'({self.op_tok}, {self.node})'
 
-
 #######################################
 # PARSE RESULT
 #######################################
@@ -243,11 +236,6 @@ class ParseResult:
         self.error = error
         return self
 
-
-#######################################
-# PARSER
-#######################################
-
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
@@ -265,7 +253,7 @@ class Parser:
         if not res.error and self.current_tok.type != TT_EOF:
             return res.failure(InvalidSyntaxError(
                 self.current_tok.pos_start, self.current_tok.pos_end,
-                "Expected '+', '-', '*' or '/'"
+                "Expected '+', '*'"
             ))
         return res
 
@@ -275,17 +263,17 @@ class Parser:
         res = ParseResult()
         tok = self.current_tok
 
-        if tok.type in (TT_PLUS, TT_MINUS, TT_NOT):
+        if tok.type in (TT_PLUS, TT_NOT):
             res.register(self.advance())
             factor = res.register(self.factor())
             if res.error: return res
             return res.success(UnaryOpNode(tok, factor))
 
-        elif tok.type in (TT_INT, TT_FLOAT):
+        elif tok.type in (TT_FALSE, TT_TRUE):
             res.register(self.advance())
-            return res.success(NumberNode(tok))
+            return res.success(BoolNode(tok))
 
-        elif tok.type in (TT_VAR):
+        elif tok.type in TT_VAR:
             res.register(self.advance())
             return res.success(VarNode(tok))
 
@@ -304,14 +292,14 @@ class Parser:
 
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
-            "Expected int or float"
+            "Expected true or false"
         ))
 
     def term(self):
-        return self.bin_op(self.factor, (TT_MUL, TT_DIV))
+        return self.bin_op(self.factor, (TT_MUL))
 
     def expr(self):
-        return self.bin_op(self.term, (TT_PLUS, TT_MINUS))
+        return self.bin_op(self.term, (TT_PLUS))
 
     ###################################
 
@@ -333,7 +321,6 @@ class Parser:
 #######################################
 # RUN
 #######################################
-
 def run(fn, text):
     # Generate tokens
     lexer = Lexer(fn, text)
