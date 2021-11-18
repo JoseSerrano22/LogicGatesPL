@@ -1,7 +1,16 @@
 import basic
 import basis
 
+print(
+	"HERE ARE SOME BASIC OPERATIONS: \n" +
+	"AND, *: And operation \n" +
+	"OR, +: Or operation \n" +
+	"NOT, !: Not operation \n" +
+	"XOR, -: XOR operation \n"
+)
+
 while True:
+
 		text = input('basic > ')
 		if text == 'stop':
 			break
