@@ -333,7 +333,6 @@ class Parser:
 #######################################
 # RUN
 #######################################
-
 def run(fn, text):
     # Generate tokens
     lexer = Lexer(fn, text)
