@@ -304,7 +304,7 @@ class Parser:
 
         return res.failure(InvalidSyntaxError(
             tok.pos_start, tok.pos_end,
-            "Expected int or float"
+            "Expected int or float or char"
         ))
 
     def term(self):
