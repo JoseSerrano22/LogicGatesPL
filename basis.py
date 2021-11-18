@@ -1,7 +1,7 @@
 #######################################
 # IMPORTS
 #######################################
-import logic_gates
+
 from strings_with_arrows import *
 
 #######################################
@@ -83,6 +83,9 @@ TT_LPAREN = 'LPAREN'
 TT_RPAREN = 'RPAREN'
 TT_NOT = 'NOT'
 TT_EOF = 'EOF'  # end of file
+KEYWORDS = [
+	'VAR'
+]
 
 
 class Token:
@@ -165,20 +168,6 @@ class Lexer:
             return Token(TT_FALSE, int(num_str), pos_start, self.pos)
         else:
             return Token(TT_TRUE, int(num_str), pos_start, self.pos)
-
-    # def make_var2(self):
-    #     var_str = ''
-    #     pos_start = self.pos.copy()
-    #     while self.current_char != None and self.current_char in VARIABLES:
-    #         var_str += self.current_char
-    #         self.advance()
-    #
-    #         if 'and' == var_str:
-    #             return Token(TT_MUL, pos_start, self.pos)
-    #         elif 'or' == var_str:
-    #             return Token(TT_PLUS, pos_start, self.pos)
-    #
-    #     return Token(TT_VAR, var_str, pos_start, self.pos)
 
     def make_var(self):
         var_str = self.current_char
