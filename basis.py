@@ -96,8 +96,8 @@ class Position:
 # TOKENS
 #######################################
 
-TT_PLUS = 'OR'
-TT_MUL = 'AND'
+TT_PLUS = 'PLUS'
+TT_MUL = 'MUL'
 TT_EQ = 'EQ'
 TT_KEYWORD = 'KEYWORD'
 TT_IDENTIFIER = 'IDENTIFIER'
@@ -108,7 +108,10 @@ TT_RPAREN = 'RPAREN'
 TT_NOT = 'NOT'
 TT_EOF = 'EOF'  # end of file
 KEYWORDS = [
-    'VAR'
+    'VAR',
+    'OR',
+    'AND',
+    'NOT'
 ]
 
 
@@ -360,7 +363,7 @@ class Parser:
         res = ParseResult()
         tok = self.current_tok
 
-        if tok.type in (TT_NOT):
+        if tok.type in (TT_NOT) or tok.matches(TT_KEYWORD, 'NOT'):
             res.register_advancement()
             self.advance()
             factor = res.register(self.factor())
@@ -406,7 +409,7 @@ class Parser:
             if res.error: return res
             return res.success(VarAssignNode(var_name, expr))
 
-        node = res.register(self.bin_op(self.term, (TT_PLUS)))
+        node = res.register(self.bin_op(self.term, (TT_PLUS, (TT_KEYWORD, "AND"), (TT_KEYWORD), "OR")))
 
         if res.error:
             return res.failure(InvalidSyntaxError(
@@ -601,7 +604,7 @@ class Interpreter:
 
         error = None
 
-        if node.op_tok.type == TT_NOT or node.op_tok.matches(TT_KEYWORD, 'NOT '):
+        if node.op_tok.type == TT_NOT or node.op_tok.matches(TT_KEYWORD, 'NOT'):
             number, error = number.not_by()
 
         if error:
