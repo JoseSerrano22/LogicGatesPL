@@ -123,7 +123,10 @@ class Token:
             self.pos_end.advance()
 
         if pos_end:
-            self.pos_end = pos_end
+            self.pos_end = pos_end.copy()
+
+    def matches(self, type_, value):
+        return self.type == type_ and self.value == value
 
     def __repr__(self):
         if self.value: return f'{self.type}:{self.value}'
@@ -316,6 +319,43 @@ class Parser:
 
     ###################################
 
+    def atom(self):
+        res = ParseResult()
+        tok = self.current_tok
+
+        # if tok.type in (TT_FALSE, TT_TRUE):
+        #     res.register_advancement()
+        #     self.advance()
+        #     return res.success(BoolNode(tok))
+
+        if tok.type == TT_IDENTIFIER:
+            res.register_advancement()
+            self.advance()
+            return res.success(VarAccessNode(tok))
+
+        elif tok.type == TT_LPAREN:
+            res.register_advancement()
+            self.advance()
+            expr = res.register(self.expr())
+            if res.error: return res
+            if self.current_tok.type == TT_RPAREN:
+                res.register_advancement()
+                self.advance()
+                return res.success(expr)
+            else:
+                return res.failure(InvalidSyntaxError(
+                    self.current_tok.pos_start, self.current_tok.pos_end,
+                    "Expected ')'"
+                ))
+
+        return res.failure(InvalidSyntaxError(
+            tok.pos_start, tok.pos_end,
+            "Expected identifier, '+', '('"
+        ))
+
+    def or_to(self):
+        return self.bin_op(self.atom, (TT_PLUS,), self.factor)
+
     def factor(self):
         res = ParseResult()
         tok = self.current_tok
@@ -378,9 +418,12 @@ class Parser:
 
     ###################################
 
-    def bin_op(self, func, ops):
+    def bin_op(self, func_a, ops, func_b=None):
+        if func_b == None:
+            func_b = func_a
+
         res = ParseResult()
-        left = res.register(func())
+        left = res.register(func_a())
         if res.error: return res
 
         while self.current_tok.type in ops:
@@ -487,6 +530,7 @@ class Context:
         self.display_name = display_name
         self.parent = parent
         self.parent_entry_pos = parent_entry_pos
+        self.symbol_table = None
 
 
 #######################################
@@ -540,9 +584,9 @@ class Interpreter:
         right = res.register(self.visit(node.right_node, context))
         if res.error: return res
 
-        if node.op_tok.type == TT_PLUS:
+        if node.op_tok.type == TT_PLUS or node.op_tok.matches(TT_KEYWORD, 'OR'):
             result, error = left.or_to(right)
-        elif node.op_tok.type == TT_MUL:
+        elif node.op_tok.type == TT_MUL or node.op_tok.matches(TT_KEYWORD, 'AND'):
             result, error = left.and_by(right)
 
         if error:
@@ -569,6 +613,9 @@ class Interpreter:
 #######################################
 # RUN
 #######################################
+global_symbol_table = SymbolTable()
+global_symbol_table.set("null", Number(0))
+
 def run(fn, text):
 
     # Generate tokens
