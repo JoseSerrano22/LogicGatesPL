@@ -13,6 +13,7 @@ DIGITS = '01'
 LETTERS = string.ascii_letters
 VARIABLES = LETTERS + DIGITS
 
+
 #######################################
 # ERRORS
 #######################################
@@ -378,7 +379,7 @@ class Parser:
         return self.or_to()
 
     def term(self):
-        return self.bin_op(self.factor, (TT_MUL))
+        return self.bin_op(self.factor, TT_MUL)
 
     def expr(self):
         res = ParseResult()
@@ -409,7 +410,7 @@ class Parser:
             if res.error: return res
             return res.success(VarAssignNode(var_name, expr))
 
-        node = res.register(self.bin_op(self.term, (TT_PLUS, (TT_KEYWORD, "AND"), (TT_KEYWORD), "OR")))
+        node = res.register(self.bin_op(self.term, (TT_PLUS, (TT_KEYWORD, "AND"), TT_KEYWORD, "OR")))
 
         if res.error:
             return res.failure(InvalidSyntaxError(
@@ -422,7 +423,7 @@ class Parser:
     ###################################
 
     def bin_op(self, func_a, ops, func_b=None):
-        if func_b == None:
+        if func_b is None:
             func_b = func_a
 
         res = ParseResult()
@@ -513,7 +514,7 @@ class SymbolTable:
 
     def get(self, name):
         value = self.symbols.get(name, None)
-        if value == None and self.parent:
+        if value is None and self.parent:
             return self.parent.get(name)
         return value
 
@@ -619,8 +620,8 @@ class Interpreter:
 global_symbol_table = SymbolTable()
 global_symbol_table.set("null", Number(0))
 
-def run(fn, text):
 
+def run(fn, text):
     # Generate tokens
     lexer = Lexer(fn, text)
     tokens, error = lexer.make_tokens()
@@ -638,4 +639,3 @@ def run(fn, text):
     result = interpreter.visit(ast.node, context)
 
     return result.value, result.error
-
