@@ -175,6 +175,9 @@ class Lexer:
             elif self.current_char == '*':
                 tokens.append(Token(TT_MUL, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '-':
+                tokens.append(Token(TT_MINUS, pos_start=self.pos))
+                self.advance()
             elif self.current_char == '(':
                 tokens.append(Token(TT_LPAREN, pos_start=self.pos))
                 self.advance()
@@ -415,7 +418,8 @@ class Parser:
             if res.error: return res
             return res.success(VarAssignNode(var_name, expr))
 
-        node = res.register(self.bin_op(self.term, (TT_PLUS, (TT_KEYWORD, "AND"), TT_KEYWORD, "OR")))
+        node = res.register(self.bin_op(self.term, (TT_PLUS, TT_MINUS, (TT_KEYWORD, "AND"), (TT_KEYWORD, "OR"), (TT_KEYWORD, "NAND"), (TT_KEYWORD, "NOR"),
+                                                    (TT_KEYWORD, "XNOR"), TT_KEYWORD, "XOR")))
 
         if res.error:
             return res.failure(InvalidSyntaxError(
@@ -491,12 +495,28 @@ class Number:
         if isinstance(other, Number):
             return Number(self.value or other.value).set_context(self.context), None
 
-    def and_by(self, other):
+    def and_to(self, other):
         if isinstance(other, Number):
             return Number(self.value and other.value).set_context(self.context), None
 
     def not_to(self):
         return Number(1 if self.value == 0 else 0).set_context(self.context), None
+
+    def xor_to(self, other):
+        if isinstance(other, Number):
+            return Number(0 if self.value==other.value else 1).set_context(self.context), None
+
+    def nor_to(self, other):
+        if isinstance(other, Number):
+            return Number(0 if self.value==1 or other.value==1 else 0).set_context(self.context), None
+
+    def nand_to(self, other):
+        if isinstance(other, Number):
+            return Number(0 if self.value==1 and other.value==1 else 1).set_context(self.context), None
+
+    def xnor_to(self, other):
+        if isinstance(other, Number):
+            return Number(0 if self.value!=other.value else 1).set_context(self.context), None
 
     def copy(self):
         copy = Number(self.value)
@@ -619,7 +639,7 @@ class Interpreter:
         error = None
 
         if node.op_tok.type == TT_NOT or node.op_tok.matches(TT_KEYWORD, 'NOT'):
-            number, error = number.not_by()
+            number, error = number.not_to()
 
         if error:
             return res.failure(error)
