@@ -99,6 +99,7 @@ class Position:
 
 TT_PLUS = 'PLUS'
 TT_MUL = 'MUL'
+TT_MINUS = 'MINUS'
 TT_EQ = 'EQ'
 TT_KEYWORD = 'KEYWORD'
 TT_IDENTIFIER = 'IDENTIFIER'
@@ -112,6 +113,10 @@ KEYWORDS = [
     'VAR',
     'OR',
     'AND',
+    'XOR',
+    'NOR',
+    'NAND',
+    'XNOR',
     'NOT'
 ]
 
@@ -490,7 +495,7 @@ class Number:
         if isinstance(other, Number):
             return Number(self.value and other.value).set_context(self.context), None
 
-    def not_by(self):
+    def not_to(self):
         return Number(1 if self.value == 0 else 0).set_context(self.context), None
 
     def copy(self):
@@ -591,7 +596,15 @@ class Interpreter:
         if node.op_tok.type == TT_PLUS or node.op_tok.matches(TT_KEYWORD, 'OR'):
             result, error = left.or_to(right)
         elif node.op_tok.type == TT_MUL or node.op_tok.matches(TT_KEYWORD, 'AND'):
-            result, error = left.and_by(right)
+            result, error = left.and_to(right)
+        elif node.op_tok.type == TT_MINUS or node.op_tok.matches(TT_KEYWORD, 'XOR'):
+            result, error = left.xor_to(right)
+        elif node.op_tok.matches(TT_KEYWORD, 'NOR'):
+            result, error = left.nor_to(right)
+        elif node.op_tok.matches(TT_KEYWORD, 'NAND'):
+            result, error = left.nand_to(right)
+        elif node.op_tok.matches(TT_KEYWORD, 'XNOR'):
+            result, error = left.xnor_to(right)
 
         if error:
             return res.failure(error)
