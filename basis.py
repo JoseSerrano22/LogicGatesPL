@@ -4,6 +4,8 @@
 
 import string
 from strings_with_arrows import *
+import ttg
+import re
 
 #######################################
 # CONSTANTS
@@ -191,6 +193,8 @@ class Lexer:
             elif self.current_char == '!':
                 tokens.append(Token(TT_NOT, pos_start=self.pos))
                 self.advance()
+            elif self.current_char == '"':
+                tokens.append(self.make_string())
             else:
                 pos_start = self.pos.copy()
                 char = self.current_char
@@ -559,6 +563,14 @@ class Number:
         copy.set_pos(self.pos_start, self.pos_end)
         copy.set_context(self.context)
         return copy
+
+    def illegal_operation(self, other=None):
+        if not other: other = self
+        return RTError(
+            self.pos_start, other.pos_end,
+            'Illegal operation',
+            self.context
+        )
 
     def __repr__(self):
         return str(self.value)

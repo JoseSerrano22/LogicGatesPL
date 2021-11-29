@@ -51,6 +51,8 @@ if __name__ == '__main__':
 
     # [ele for ele in test_list if (ele in test_string)]
 
+    print(ttg.Truths(['a', 'b', 'c'], ['not((a or b) and c)']))
+
     # if any(word in sentence for word in gates):
     #     x = re.split('and |or | not | xor', sentence)
     #     for y in x:
