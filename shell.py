@@ -6,7 +6,9 @@ print(
 	"AND, *: And operation \n" +
 	"OR, +: Or operation \n" +
 	"NOT, !: Not operation \n" +
-	"XOR, -: XOR operation \n"
+	"XOR, -: XOR operation \n" +
+	"VAR: Initialize variables\n" +
+	"STOP: end program"
 )
 
 while True:

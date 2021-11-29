@@ -97,6 +97,7 @@ class Position:
 # TOKENS
 #######################################
 
+TT_STRING = 'STRING'
 TT_PLUS = 'PLUS'
 TT_MUL = 'MUL'
 TT_MINUS = 'MINUS'
@@ -207,6 +208,31 @@ class Lexer:
         else:
             return Token(TT_TRUE, int(num_str), pos_start, self.pos)
 
+    def make_string(self):
+        string = ''
+        pos_start = self.pos.copy()
+        escape_character = False
+        self.advance()
+
+        escape_characters = {
+            'n': '\n',
+            't': '\t'
+        }
+
+        while self.current_char != None and (self.current_char != '"' or escape_character):
+            if escape_character:
+                string += escape_characters.get(self.current_char, self.current_char)
+            else:
+                if self.current_char == '\\':
+                    escape_character = True
+                else:
+                    string += self.current_char
+            self.advance()
+            escape_character = False
+
+        self.advance()
+        return Token(TT_STRING, string, pos_start, self.pos)
+
     def make_identifier(self):
         id_str = ''
         pos_start = self.pos.copy()
@@ -224,6 +250,16 @@ class Lexer:
 #######################################
 
 class BoolNode:
+    def __init__(self, tok):
+        self.tok = tok
+
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
+
+    def __repr__(self):
+        return f'{self.tok}'
+
+class StringNode:
     def __init__(self, tok):
         self.tok = tok
 
@@ -335,15 +371,15 @@ class Parser:
         res = ParseResult()
         tok = self.current_tok
 
-        # if tok.type in (TT_FALSE, TT_TRUE):
-        #     res.register_advancement()
-        #     self.advance()
-        #     return res.success(BoolNode(tok))
-
         if tok.type == TT_IDENTIFIER:
             res.register_advancement()
             self.advance()
             return res.success(VarAccessNode(tok))
+
+        if tok.type == TT_STRING:
+            res.register_advancement()
+            self.advance()
+            return res.success(StringNode(tok))
 
         elif tok.type == TT_LPAREN:
             res.register_advancement()
@@ -527,6 +563,21 @@ class Number:
     def __repr__(self):
         return str(self.value)
 
+class String(Number):
+    def __init__(self, value):
+        self.value = value
+
+    def is_true(self):
+        return len(self.value)>0
+
+    def copy(self):
+        copy = String(self.value)
+        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.context)
+        return copy
+
+    def __repr__(self):
+        return str(self.value)
 
 #######################################
 # SYMBOL TABLE
@@ -581,6 +632,47 @@ class Interpreter:
         return RTResult().success(
             Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         )
+
+    def visit_StringNode(self, node, context):
+        gates = ["and", "or", "xor", "not", "nand", "nor"]
+        sentence = String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        sentence1 = str(sentence)
+        sentence_lowercase = sentence1.lower()
+
+        disallowed_characters = "()"
+
+        for character in disallowed_characters:
+            sentence1 = sentence1.replace(character, "")
+
+
+        str1 = ""
+        str2 = ""
+
+
+        if any(word in sentence1 for word in gates):
+            x = re.split('and |or |not |xor |nand |nor ', sentence1)
+            for y in x:
+                str1 += y
+            b = str1.split(" ")
+            for y in b:
+                if len(y) == 1:
+                    str2 += y
+            str3 = split(str2)
+
+            print(ttg.Truths(str3, [sentence_lowercase]))
+
+        elif len(sentence1) == 0:
+            return RTResult().success("")
+
+        elif not (" " in sentence1):
+            temp = split(sentence1)
+            print(ttg.Truths(temp))
+
+        return RTResult().success("")
+
+        # return RTResult().success(
+        # String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+        # )
 
     def visit_VarAccessNode(self, node, context):
         res = RTResult()
@@ -646,6 +738,9 @@ class Interpreter:
         else:
             return res.success(number.set_pos(node.pos_start, node.pos_end))
 
+
+def split(word):
+    return [char for char in word]
 
 #######################################
 # RUN

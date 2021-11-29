@@ -51,18 +51,18 @@ if __name__ == '__main__':
 
     # [ele for ele in test_list if (ele in test_string)]
 
-    if any(word in sentence for word in gates):
-        x = re.split('and |or | not | xor',sentence)
-        for y in x:
-            str += y
-        b = str.split(" ")
-        for y in b:
-            if len(y) ==1:
-                str2 += y
-        print(str2)
-    str4 = split(str2)
-
-    print(ttg.Truths(str4, [sentence]))
+    # if any(word in sentence for word in gates):
+    #     x = re.split('and |or | not | xor', sentence)
+    #     for y in x:
+    #         str += y
+    #     b = str.split(" ")
+    #     for y in b:
+    #         if len(y) ==1:
+    #             str2 += y
+    #     print(str2)
+    # str4 = split(str2)
+    #
+    # print(ttg.Truths(str4, [sentence]))
     # print(str2)
 
 
