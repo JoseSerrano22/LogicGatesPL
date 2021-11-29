@@ -649,8 +649,20 @@ class Interpreter:
         gates = ["and", "or", "xor", "not", "nand", "nor"]
         sentence = String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         sentence1 = str(sentence)
-        sentence_lowercase = sentence1.lower()
 
+
+        gate_symbols = ["*", "+", "!", "-"]
+
+        for x in gate_symbols:
+            if x == "*":
+                sentence1 = sentence1.replace(x, "and")
+            elif x == "+":
+                sentence1 = sentence1.replace(x, "or")
+            elif x == "!":
+                sentence1 = sentence1.replace(x, "not")
+            elif x == "-":
+                sentence1 = sentence1.replace(x, "xor")
+        sentence_lowercase = sentence1.lower()
         disallowed_characters = "()"
 
         for character in disallowed_characters:
