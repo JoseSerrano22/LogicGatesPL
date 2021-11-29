@@ -508,7 +508,7 @@ class Number:
 
     def nor_to(self, other):
         if isinstance(other, Number):
-            return Number(0 if self.value==1 or other.value==1 else 0).set_context(self.context), None
+            return Number(0 if self.value==1 or other.value==1 else 1).set_context(self.context), None
 
     def nand_to(self, other):
         if isinstance(other, Number):
