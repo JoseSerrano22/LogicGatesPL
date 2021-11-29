@@ -14,7 +14,7 @@ print(
 while True:
 
 		text = input('basic > ')
-		if text == 'stop':
+		if text == 'stop' or text == 'STOP':
 			break
 		result, error = basis.run('<stdin>', text)
 
