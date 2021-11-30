@@ -110,7 +110,7 @@ Install dependencies
 Start Program
 
 ```bash
-  .\shell.py
+  python3 shell.py
 ```
 
 To input boolean algebra equations and get a truth table that represents
