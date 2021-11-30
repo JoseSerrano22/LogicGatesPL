@@ -655,6 +655,7 @@ class Interpreter:
                 sentence1 = sentence1.replace(x, "not")
             elif x == "-":
                 sentence1 = sentence1.replace(x, "xor")
+
         sentence_lowercase = sentence1.lower()
         disallowed_characters = "()"
 
@@ -671,7 +672,8 @@ class Interpreter:
             x = re.split('and |or |not |xor |nand |nor ', sentence1)
             for y in x:
                 str1 += y
-            b = str1.split(" ")
+            str_noduplicate = "".join(dict.fromkeys(str1))
+            b = str_noduplicate.split(" ")
             for y in b:
                 if len(y) == 1:
                     str2 += y

@@ -1,9 +1,0 @@
-expr    : KEYWORD:VAR IDENTIFIER EQ expr
-        : term ((PLUS|MINUS) term)*
-
-term    : factor ((MUL|DIV) factor)*
-
-factor  : (PLUS) factor
-
-atom    : IDENTIFIER
-        : LPAREN expr RPAREN
