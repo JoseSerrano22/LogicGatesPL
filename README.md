@@ -20,7 +20,7 @@ of a truth table
 
 
 ```python
-basic > "a b"
+basic > "ab"
 +-----+-----+
 |  a  |  b  |
 |-----+-----+
