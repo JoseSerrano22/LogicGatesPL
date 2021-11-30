@@ -1,6 +1,4 @@
-#######################################
-# IMPORTS
-#######################################
+
 
 import string
 from strings_with_arrows import *
@@ -15,10 +13,6 @@ DIGITS = '01'
 LETTERS = string.ascii_letters
 VARIABLES = LETTERS + DIGITS
 
-
-#######################################
-# ERRORS
-#######################################
 
 class Error:
     def __init__(self, pos_start, pos_end, error_name, details):
@@ -71,7 +65,7 @@ class RTError(Error):
 #######################################
 # POSITION
 #######################################
-# help to know where the error is
+
 
 class Position:
     def __init__(self, idx, ln, col, fn, ftxt):  # index, line number, column number, file name, file text
@@ -650,7 +644,6 @@ class Interpreter:
         sentence = String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
         sentence1 = str(sentence)
 
-
         gate_symbols = ["*", "+", "!", "-"]
 
         for x in gate_symbols:
@@ -668,10 +661,11 @@ class Interpreter:
         for character in disallowed_characters:
             sentence1 = sentence1.replace(character, "")
 
-
         str1 = ""
         str2 = ""
-
+        amount = 0
+        blen = 0
+        strlen = 0
 
         if any(word in sentence1 for word in gates):
             x = re.split('and |or |not |xor |nand |nor ', sentence1)
@@ -681,11 +675,15 @@ class Interpreter:
             for y in b:
                 if len(y) == 1:
                     str2 += y
+                    amount += 1
             str3 = split(str2)
-
+            strlen = len(str3)
+            blen = len(b)
+        if strlen != 0 and strlen == amount and blen == amount:
             print(ttg.Truths(str3, [sentence_lowercase]))
 
-        elif len(sentence1) == 0:
+        elif len(sentence1) == 0 or strlen == 0:
+            print("Input could not be processed")
             return RTResult().success("")
 
         elif not (" " in sentence1):
@@ -694,9 +692,6 @@ class Interpreter:
 
         return RTResult().success("")
 
-        # return RTResult().success(
-        # String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
-        # )
 
     def visit_VarAccessNode(self, node, context):
         res = RTResult()
