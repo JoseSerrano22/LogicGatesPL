@@ -1,6 +1,4 @@
-#######################################
-# IMPORTS
-#######################################
+
 
 import string
 from strings_with_arrows import *
@@ -15,10 +13,6 @@ DIGITS = '01'
 LETTERS = string.ascii_letters
 VARIABLES = LETTERS + DIGITS
 
-
-#######################################
-# ERRORS
-#######################################
 
 class Error:
     def __init__(self, pos_start, pos_end, error_name, details):
@@ -71,7 +65,7 @@ class RTError(Error):
 #######################################
 # POSITION
 #######################################
-# help to know where the error is
+
 
 class Position:
     def __init__(self, idx, ln, col, fn, ftxt):  # index, line number, column number, file name, file text
@@ -698,9 +692,6 @@ class Interpreter:
 
         return RTResult().success("")
 
-        # return RTResult().success(
-        # String(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
-        # )
 
     def visit_VarAccessNode(self, node, context):
         res = RTResult()
