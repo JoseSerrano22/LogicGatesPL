@@ -46,11 +46,11 @@ basic > "a + b"
 +-----+-----+----------+
 ```
 
-Input: (a * b) or (c - d)
+Input: (a and b) or (c xor d)
 
 Output:
 ```python
-basic > "(a * b) or (c - d)"
+basic > "(a and b) or (c xor d)"
 +-----+-----+-----+-----+--------------------------+
 |  a  |  b  |  c  |  d  |  (a and b) or (c xor d)  |
 |-----+-----+-----+-----+--------------------------|
