@@ -672,8 +672,9 @@ class Interpreter:
             x = re.split('and |or |not |xor |nand |nor ', sentence1)
             for y in x:
                 str1 += y
+            str1 = re.sub(r"\s+", "", str1, flags=re.UNICODE)
             str_noduplicate = "".join(dict.fromkeys(str1))
-            b = str_noduplicate.split(" ")
+            b = list(str_noduplicate)
             for y in b:
                 if len(y) == 1:
                     str2 += y
