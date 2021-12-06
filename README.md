@@ -46,7 +46,7 @@ basic > "a + b"
 +-----+-----+----------+
 ```
 
-Input: (a and b) or (c xor d)
+Input: "(a and b) or (c xor d)"
 
 Output:
 ```python
